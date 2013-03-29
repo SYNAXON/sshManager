@@ -1,0 +1,149 @@
+#!/bin/bash
+
+###############################################################################
+#                                                                             #
+# Simple console frontend for ssh.                                            #                                   
+#                                                                             #
+# This small bash script helps you to manage several ssh connections at the   #
+# bash. Therefore it uses normal ssh command as underlying prgramm.           #
+#                                                                             #
+# author  : Daniel Kröger <dane0542@googlemail.com>                           #
+# version : 23.03.2013                                                        #
+#                                                                             #
+###############################################################################
+
+## BEGIN ENVIRONMENT VARIABLES ################################################
+
+DATA_DIRECTORY="/home/`whoami`/.ssh_manager"
+CONNECTIONS=""
+
+## END ENVIRONMENT VARIABLES ##################################################
+
+## BEGIN INTERFACE FUNCTIONS ##################################################
+
+# $1 - text to echo.
+# $2 - color of text. (green, yellow, red, none)
+# $3 - (optional) don't newline after text.
+function print_text()
+{       
+    case $2 in
+	"green" ) tput setaf 10;;
+	"yellow") tput setaf 11;;
+	"red"   ) tput setaf 9;;
+    esac
+    
+    if [ "$3" == "true" ]; then
+        echo -e -n "$1"
+    else
+        echo -e "$1"
+    fi   
+
+    tput sgr0
+}
+
+# $1 - character to print.
+# $2 - (optional) color (green, yellow, red, none).
+function print_seperator()
+{
+    WIDTH="`tput cols`"
+    TEXT=""
+
+    while [ $WIDTH -gt 0 ]; do
+	TEXT+="$1"
+	WIDTH="$(( $WIDTH - 1 ))"
+    done
+
+    print_text "$TEXT" "$2"
+}
+
+# $1 - offset to start (number of echoed letters).
+# $2 - character for lineend.
+# $3 - (optional) color (green, yellow, red, none).
+function print_lineend()
+{  
+    WIDTH="`tput cols`"
+    WIDTH="$(( $WIDTH - $1 ))"
+
+    while [ $WIDTH -gt 1 ]; do
+        print_text " " "" "true"
+	WIDTH="$(( $WIDTH - 1 ))"
+    done
+
+    if [ "$2" == "" ]; then
+	print_text " " "" "true"
+    else
+        print_text "$2" "$3" "true"
+    fi
+}
+
+# $1 - text to echo.
+# $2 - color of text (green, yellow, red, none).
+# $3 - offset for current position.
+function print_centered_text()
+{
+    TEXT="$1"
+    WIDTH="`tput cols`"
+    WIDTH="$(( $WIDTH - $3 ))"
+    MIDDLE="$(( $WIDTH - ${#TEXT} ))"
+    MIDDLE="$(( $MIDDLE / 2 ))"
+
+    CURRENT="0"
+    while [ $CURRENT -lt $MIDDLE ]; do
+	print_text " " "" "true"        
+        CURRENT="$(( $CURRENT + 1 ))"
+    done
+    
+    print_text "$TEXT" "$2" "true"
+    if [ "$(( (WIDTH - ${#TEXT}) % 2 ))" == "1" ]; then
+	CURRENT="$(( $CURRENT + 1 ))"
+    fi
+
+    while [ $CURRENT -gt 0 ]; do
+	print_text " " "" "true"
+        CURRENT="$(( $CURRENT - 1 ))"
+    done
+}
+
+function print_menu()
+{
+    # fancy header and menu bar ...
+    print_text "" ""
+    print_seperator "*" "green"
+    print_text "*" "green" "true"
+    print_centered_text "SSH MANAGER - With great power comes great responsibility !" "yellow" "2"
+    print_text "*" "green" "true"
+    print_seperator "*" "green"
+    print_text "*" "green" "true"
+    print_lineend "1" "*" "green"
+    
+    MENU[0]="[show   | s] - Show a list of all available hosts to connect to."
+    MENU[1]="[add    | a] - Add host to list by setting up connection information."
+    MENU[2]="[delete | d] - Delete connection information of host from list."
+    MENU[3]="[reset  | r] - Reset all stored information, including public and private keys."
+    MENU[4]="[upload | u] - Upload a public key to a host by using ssh-copy-id"
+    MENU[5]="[help   | h] - Print this help again and show available commands."
+    MENU[6]="[quit   | q] - Quit ssh_manager script."
+
+    # print available commands ...
+    COUNTER=0
+    while [ $COUNTER -lt ${#MENU[*]} ]; do
+        ENTRY="${MENU[$COUNTER]}"
+        print_text "*  " "green" "true"
+	print_text "$ENTRY" "yellow" "true"
+        print_lineend "$(( ${#ENTRY} + 3 ))" "*" "green"
+
+	COUNTER="$(( $COUNTER + 1 ))"       
+    done
+
+    # fancy menu end ...
+    print_text "*" "green" "true"
+    print_lineend "1" "*" "green"
+    print_seperator "*" "green"
+    print_text "" ""
+}
+
+## END INTERFACE FUNCTION #####################################################
+
+## BEGIN MAIN PROGRAMM EXECUTION CODE #########################################
+
+print_menu
