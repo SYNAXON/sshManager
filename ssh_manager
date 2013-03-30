@@ -15,7 +15,7 @@
 ## BEGIN ENVIRONMENT VARIABLES ################################################
 
 DATA_DIRECTORY="/home/`whoami`/.ssh_manager"
-CONNECTIONS=""
+HOSTS=""
 
 ## END ENVIRONMENT VARIABLES ##################################################
 
@@ -104,6 +104,26 @@ function print_centered_text()
     done
 }
 
+# $1 - String array with menu entries.
+# $2 - if "true", print with stars at line begin and end.
+function print_options()
+{
+    MENU="$1"
+    COUNTER=0
+
+    while [ $COUNTER -lt ${#MENU[*]} ]; do
+        ENTRY="${MENU[$COUNTER]}"
+        if [ "$2" == "true" ]; then
+            print_text "*  " "green" "true"
+	    print_text "$ENTRY" "yellow" "true"
+            print_lineend "$(( ${#ENTRY} + 3 ))" "*" "green"
+        else 
+	    print_text "   $ENTRY" "yellow"
+	fi
+	COUNTER="$(( $COUNTER + 1 ))"       
+    done
+}
+
 function print_menu()
 {
     # fancy header and menu bar ...
@@ -116,24 +136,18 @@ function print_menu()
     print_text "*" "green" "true"
     print_lineend "1" "*" "green"
     
-    MENU[0]="[show   | s] - Show a list of all available hosts to connect to."
-    MENU[1]="[add    | a] - Add host to list by setting up connection information."
-    MENU[2]="[delete | d] - Delete connection information of host from list."
-    MENU[3]="[reset  | r] - Reset all stored information, including public and private keys."
-    MENU[4]="[upload | u] - Upload a public key to a host by using ssh-copy-id"
-    MENU[5]="[help   | h] - Print this help again and show available commands."
-    MENU[6]="[quit   | q] - Quit ssh_manager script."
+    MENU[0]="[show    | s ] - Show a list of all available hosts to connect to."
+    MENU[1]="[connect | c ] - Connect to host by a number from list (show command)."
+    MENU[2]="[add     | a ] - Add host to list by setting up connection information."
+    MENU[3]="[delete  | d ] - Delete connection information of host from list."
+    MENU[4]="[reset   | r ] - Reset all stored information, including public and private keys."
+    MENU[5]="[upload  | u ] - Upload a public key to a host by using ssh-copy-id."
+    MENU[6]="[clear   | cl] - Clear the screen."
+    MENU[7]="[help    | h ] - Print this help again and show available commands."
+    MENU[8]="[quit    | q ] - Quit ssh_manager script."
 
     # print available commands ...
-    COUNTER=0
-    while [ $COUNTER -lt ${#MENU[*]} ]; do
-        ENTRY="${MENU[$COUNTER]}"
-        print_text "*  " "green" "true"
-	print_text "$ENTRY" "yellow" "true"
-        print_lineend "$(( ${#ENTRY} + 3 ))" "*" "green"
-
-	COUNTER="$(( $COUNTER + 1 ))"       
-    done
+    print_options "$MENU" "true"
 
     # fancy menu end ...
     print_text "*" "green" "true"
@@ -142,8 +156,157 @@ function print_menu()
     print_text "" ""
 }
 
-## END INTERFACE FUNCTION #####################################################
+## END INTERFACE FUNCTIONS ####################################################
 
-## BEGIN MAIN PROGRAMM EXECUTION CODE #########################################
+## BEGIN MAIN HELPER FUNCTIONS ################################################
 
+function read_hosts()
+{
+    COUNTER="1"
+
+    while read HOST ; do
+	if [ "$HOST" != "" ]; then
+	    HOSTS[$COUNTER]="$HOST"	
+	    COUNTER="$(( $COUNTER + 1 ))"
+	fi
+    done < "${DATA_DIRECTORY}/hosts"
+}
+
+function save_hosts()
+{
+    COUNTER="${#HOSTS[*]}"
+    
+    while [ $COUNTER -gt 0 ]; do
+	echo "${HOSTS[$COUNTER]}" >> "${DATA_DIRECTORY}/hosts"
+	COUNTER="$(( $COUNTER - 1 ))"
+    done
+}
+
+function bootstrap()
+{
+    # check if working directory exists, if not create it ...
+    if [ -d "$DATA_DIRECTORY" ] && [ -w "$DATA_DIRECTORY" ]; then
+	read_hosts
+    else
+	if [ -w "/home/`whoami`/" ]; then
+	    mkdir "$DATA_DIRECTORY"
+	    chmod 700 "$DATA_DIRECTORY"
+	    touch "${DATA_DIRECTORY}/hosts"
+	    chmod 600 "${DATA_DIRECTORY}/hosts"
+	    bootstrap
+	else
+	    print_text "Cannot create necessary directory ${DATA_DIRECTORY} and files in it. Please check permissions and retry !" "red"
+            print_text "Execution failed with errors - Quitting now !" "red"
+            exit 1
+	fi
+    fi
+}
+
+function list_hosts()
+{
+    if [ ${#HOSTS[1]} -gt 0 ]; then
+	COUNTER="1"
+
+	while [ $COUNTER -le ${#HOSTS[*]} ]; do
+	    if [ "${HOSTS[$COUNTER]}" != "" ]; then
+		print_text "   $COUNTER ${HOSTS[$COUNTER]}" "yellow"
+	    fi
+	    COUNTER="$(( $COUNTER + 1 ))"
+	done
+    else
+	print_text "No connections setup yet !" "red"
+	print_text "Please setup at least one connection to use 'show' mode !" "red"	
+    fi	
+}
+
+function reset()
+{
+    ANSWER=""
+
+    print_text "Enter 'yes' if you really want to delete all saved configurations and keys." "yellow"
+    read ANSWER
+
+    print_text "" ""
+    if [ "$ANSWER" == "yes" ]; then
+	rm -rf "${DATA_DIRECTORY}"
+	print_text "It'll look like we've never been at this place !" "green" 
+	print_text "Quitting now !" "green"
+	print_text "" ""		
+	exit 0
+    else
+	print_text "Aborting ! You're now at main menu again." "red"	
+    fi
+}
+
+function connect()
+{
+    ANSWER=""
+
+    if [ ${#HOSTS[1]} -gt 0 ]; then
+
+	print_text "Please enter number of host to connect to (1-$(( ${#HOSTS[*]} - 1))) : " "yellow" "true"
+	read ANSWER
+	print_text "" ""
+
+	if [[ $ANSWER = [[:digit:]] ]] && [ $ANSWER -gt 0 ] && [ $ANSWER -lt ${#HOSTS[*]} ]; then
+	    print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
+	    print_text "Executing command ${HOSTS[$ANSWER]}" "yellow"
+
+	    print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
+	    print_text "Establishing connection ..." "green"
+
+	    print_text "" ""
+	    eval "${HOSTS[$ANSWER]}"
+	    print_text "" ""
+
+	    if [ $? != 0 ]; then	
+	        print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
+		print_text "Ups ! Something went wrongi, aborting ..." "red"
+	    else	
+	        print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
+		print_text "Connection closed." "green"
+	    fi
+	else
+	    print_text "Invalid number $ANSWER ! Aborting ..." "red"
+	fi
+    else
+	print_text "No connections setup yet !" "red"
+	print_text "Please setup at least one connection to use 'connect' mode !" "red"
+    fi
+}
+
+## END MAIN HELPER FUNCTION ###################################################
+
+## BEGIN MAIN PROGRAM EXECUTION CODE ##########################################
+
+bootstrap
 print_menu
+
+ANSWER=""
+while [ "$ANSWER" != "quit" ] || [ "$ANSWER" != "q" ]; do
+
+    print_text "> " "yellow" "true"
+    read ANSWER
+
+    case "$ANSWER" in 
+	"show"    ) print_text "" ""; list_hosts; print_text "" "";;
+	"s"       ) print_text "" ""; list_hosts; print_text "" "";;
+	"connect" ) print_text "" ""; connect; print_text "" "";;
+	"c"	  ) print_text "" ""; connect; print_text "" "";;
+	"add"	  ) ;;
+	"a"	  ) ;;
+	"delete"  ) ;;
+	"d"	  ) ;;	
+	"reset"   ) print_text "" ""; reset; print_text "" "";;
+	"r"       ) print_text "" ""; reset; print_text "" "";;
+	"upload"  ) ;;
+	"u"	  ) ;;	
+	"clear"   ) clear; print_menu;;
+	"cl"      ) clear; print_menu;;
+	"help"    ) print_options; print_text "" "";;
+	"h"       ) print_options; print_text "" "";;
+	"quit"    ) print_text "" ""; print_text "Quitting now !" "green"; print_text "" ""; exit 0;;
+	"q"       ) print_text "" ""; print_text "Quitting now !" "green"; print_text "" ""; exit 0;;
+	*         ) print_text "" ""; print_text "Unknown command, please enter a valid. You can type 'help' to get a list of valid commands." "red"; print_text "" "";;
+    esac
+done
