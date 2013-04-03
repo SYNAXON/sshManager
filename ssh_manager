@@ -179,6 +179,7 @@ function print_menu()
 
 function read_hosts()
 {
+    unset HOSTS
     COUNTER="1"
 
     while read HOST ; do
@@ -292,6 +293,51 @@ function connect()
     fi
 }
 
+function add_host()
+{
+    HOST=""
+    USER=""
+    PORT=""
+    COMMAND=""
+
+    print_text "Please enter hostname or ip of target (e.g. google.de) : " "yellow" "true"
+    read HOST
+
+    print_text "Please enter username to login with (e.g. otto) : " "yellow" "true"
+    read USER
+
+    print_text "Please enter port number of target host (e.g. 20) : " "yellow" "true"
+    read PORT
+
+    COMMAND="ssh -p $PORT ${USER}@${HOST}"
+    print_text "" ""
+    print_text "This is my guess for ssh command '${COMMAND}' ! Does this look correct ?" "yellow"
+    read ANSWER
+    print_text "" ""
+
+    if [ "$ANSWER" == "yes" ]; then
+	if [ ${#HOSTS[*]} -eq 0 ]; then
+	    HOSTS[1]="$COMMAND"
+	else
+	    HOSTS[${#HOSTS[*]}]="$COMMAND"
+	fi
+	save_hosts		
+    	print_text "Saved host to connection list." "green"	
+	print_text "Need a restart ... Quitting !" "green"
+	print_text "" ""
+	exit 0
+    else
+	print_text "Reenter connection information ?" "yellow"
+	read ANSWER
+	print_text "" ""
+	if [ "$ANSWER" == "yes" ]; then
+	    add_host
+	else
+	    print_text "Aborting !" "red"
+	fi
+    fi    
+}
+
 ## END MAIN HELPER FUNCTION ###################################################
 
 ## BEGIN MAIN PROGRAM EXECUTION CODE ##########################################
@@ -310,8 +356,8 @@ while [ "$ANSWER" != "quit" ] || [ "$ANSWER" != "q" ]; do
 	"s"       ) print_text "" ""; list_hosts; print_text "" "";;
 	"connect" ) print_text "" ""; connect; print_text "" "";;
 	"c"	  ) print_text "" ""; connect; print_text "" "";;
-	"add"	  ) ;;
-	"a"	  ) ;;
+	"add"	  ) print_text "" ""; add_host; print_text "" "";;
+	"a"	  ) print_text "" ""; add_host; print_text "" "";;
 	"delete"  ) ;;
 	"d"	  ) ;;	
 	"reset"   ) print_text "" ""; reset; print_text "" "";;
