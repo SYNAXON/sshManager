@@ -8,7 +8,7 @@
 # bash. Therefore it uses normal ssh command as underlying prgramm.           #
 #                                                                             #
 # author  : Daniel Kröger <dane0542@googlemail.com>                           #
-# version : 30.03.2013                                                        #
+# version : 12.07.2013                                                        #
 #                                                                             #
 ###############################################################################
 #                                                                             #
@@ -44,9 +44,9 @@ HOSTS=""
 function print_text()
 {       
     case $2 in
-	"green" ) tput setaf 10;;
-	"yellow") tput setaf 11;;
-	"red"   ) tput setaf 9;;
+	    "green" ) tput setaf 10;;
+	    "yellow") tput setaf 11;;
+	    "red"   ) tput setaf 9;;
     esac
     
     if [ "$3" == "true" ]; then
@@ -66,8 +66,8 @@ function print_seperator()
     TEXT=""
 
     while [ $WIDTH -gt 0 ]; do
-	TEXT+="$1"
-	WIDTH="$(( $WIDTH - 1 ))"
+	    TEXT+="$1"
+	    WIDTH="$(( $WIDTH - 1 ))"
     done
 
     print_text "$TEXT" "$2"
@@ -83,11 +83,11 @@ function print_lineend()
 
     while [ $WIDTH -gt 1 ]; do
         print_text " " "" "true"
-	WIDTH="$(( $WIDTH - 1 ))"
+	    WIDTH="$(( $WIDTH - 1 ))"
     done
 
     if [ "$2" == "" ]; then
-	print_text " " "" "true"
+	    print_text " " "" "true"
     else
         print_text "$2" "$3" "true"
     fi
@@ -106,17 +106,17 @@ function print_centered_text()
 
     CURRENT="0"
     while [ $CURRENT -lt $MIDDLE ]; do
-	print_text " " "" "true"        
+	    print_text " " "" "true"        
         CURRENT="$(( $CURRENT + 1 ))"
     done
     
     print_text "$TEXT" "$2" "true"
     if [ "$(( (WIDTH - ${#TEXT}) % 2 ))" == "1" ]; then
-	CURRENT="$(( $CURRENT + 1 ))"
+	    CURRENT="$(( $CURRENT + 1 ))"
     fi
 
     while [ $CURRENT -gt 0 ]; do
-	print_text " " "" "true"
+	    print_text " " "" "true"
         CURRENT="$(( $CURRENT - 1 ))"
     done
 }
@@ -132,12 +132,12 @@ function print_options()
         ENTRY="${MENU[$COUNTER]}"
         if [ "$2" == "true" ]; then
             print_text "*  " "green" "true"
-	    print_text "$ENTRY" "yellow" "true"
+	        print_text "$ENTRY" "yellow" "true"
             print_lineend "$(( ${#ENTRY} + 3 ))" "*" "green"
         else 
-	    print_text "   $ENTRY" "yellow"
-	fi
-	COUNTER="$(( $COUNTER + 1 ))"       
+	        print_text "   $ENTRY" "yellow"
+	    fi
+	    COUNTER="$(( $COUNTER + 1 ))"       
     done
 }
 
@@ -183,20 +183,24 @@ function read_hosts()
     COUNTER="1"
 
     while read HOST ; do
-	if [ "$HOST" != "" ]; then
-	    HOSTS[$COUNTER]="$HOST"	
-	    COUNTER="$(( $COUNTER + 1 ))"
-	fi
+	    if [ "$HOST" != "" ]; then
+	        HOSTS[$COUNTER]="$HOST"	
+	        COUNTER="$(( $COUNTER + 1 ))"
+	    fi
     done < "${DATA_DIRECTORY}/hosts"
 }
 
 function save_hosts()
 {
-    COUNTER="${#HOSTS[*]}"
+    COUNTER="1"
     
-    while [ $COUNTER -gt 0 ]; do
-	echo "${HOSTS[$COUNTER]}" >> "${DATA_DIRECTORY}/hosts"
-	COUNTER="$(( $COUNTER - 1 ))"
+    if [ -e "${DATA_DIRECTORY}/hosts" ]; then
+        rm "${DATA_DIRECTORY}/hosts"
+    fi
+
+    while [ $COUNTER -le ${#HOSTS[*]} ]; do
+	    echo "${HOSTS[$COUNTER]}" >> "${DATA_DIRECTORY}/hosts"
+	    COUNTER="$(( $COUNTER + 1 ))"
     done
 }
 
@@ -204,36 +208,36 @@ function bootstrap()
 {
     # check if working directory exists, if not create it ...
     if [ -d "$DATA_DIRECTORY" ] && [ -w "$DATA_DIRECTORY" ]; then
-	read_hosts
+	    read_hosts
     else
-	if [ -w "/home/`whoami`/" ]; then
-	    mkdir "$DATA_DIRECTORY"
-	    chmod 700 "$DATA_DIRECTORY"
-	    touch "${DATA_DIRECTORY}/hosts"
-	    chmod 600 "${DATA_DIRECTORY}/hosts"
-	    bootstrap
-	else
-	    print_text "Cannot create necessary directory ${DATA_DIRECTORY} and files in it. Please check permissions and retry !" "red"
+	    if [ -w "/home/`whoami`/" ]; then
+	        mkdir "$DATA_DIRECTORY"
+	        chmod 700 "$DATA_DIRECTORY"
+	        touch "${DATA_DIRECTORY}/hosts"
+	        chmod 600 "${DATA_DIRECTORY}/hosts"
+	        bootstrap
+	    else
+	        print_text "Cannot create necessary directory ${DATA_DIRECTORY} and files in it. Please check permissions and retry !" "red"
             print_text "Execution failed with errors - Quitting now !" "red"
             exit 1
-	fi
+	    fi
     fi
 }
 
 function list_hosts()
 {
     if [ ${#HOSTS[1]} -gt 0 ]; then
-	COUNTER="1"
+	    COUNTER="1"
 
-	while [ $COUNTER -le ${#HOSTS[*]} ]; do
-	    if [ "${HOSTS[$COUNTER]}" != "" ]; then
-		print_text "   $COUNTER ${HOSTS[$COUNTER]}" "yellow"
-	    fi
-	    COUNTER="$(( $COUNTER + 1 ))"
-	done
+	    while [ $COUNTER -le ${#HOSTS[*]} ]; do
+	        if [ "${HOSTS[$COUNTER]}" != "" ]; then
+		        print_text "   $COUNTER ${HOSTS[$COUNTER]}" "yellow"
+	        fi
+	        COUNTER="$(( $COUNTER + 1 ))"
+	    done
     else
-	print_text "No connections setup yet !" "red"
-	print_text "Please setup at least one connection to use 'show' mode !" "red"	
+	    print_text "No connections setup yet !" "red"
+	    print_text "Please setup at least one connection to use 'show' mode !" "red"	
     fi	
 }
 
@@ -246,13 +250,13 @@ function reset()
 
     print_text "" ""
     if [ "$ANSWER" == "yes" ]; then
-	rm -rf "${DATA_DIRECTORY}"
-	print_text "It'll look like we've never been at this place !" "green" 
-	print_text "Quitting now !" "green"
-	print_text "" ""		
-	exit 0
+	    rm -rf "${DATA_DIRECTORY}"
+	    print_text "It'll look like we've never been at this place !" "green" 
+	    print_text "Quitting now !" "green"
+	    print_text "" ""		
+	    exit 0
     else
-	print_text "Aborting ! You're now at main menu again." "red"	
+	    print_text "Aborting ! You're now at main menu again." "red"	
     fi
 }
 
@@ -261,35 +265,34 @@ function connect()
     ANSWER=""
 
     if [ ${#HOSTS[1]} -gt 0 ]; then
+	    print_text "Please enter number of host to connect to (1-${#HOSTS[*]}) : " "yellow" "true"
+	    read ANSWER
+	    print_text "" ""                        
 
-	print_text "Please enter number of host to connect to (1-$(( ${#HOSTS[*]} - 1))) : " "yellow" "true"
-	read ANSWER
-	print_text "" ""
-
-	if [[ $ANSWER = [[:digit:]] ]] && [ $ANSWER -gt 0 ] && [ $ANSWER -lt ${#HOSTS[*]} ]; then
-	    print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
-	    print_text "Executing command ${HOSTS[$ANSWER]}" "yellow"
-
-	    print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
-	    print_text "Establishing connection ..." "green"
-
-	    print_text "" ""
-	    eval "${HOSTS[$ANSWER]}"
-	    print_text "" ""
-
-	    if [ $? != 0 ]; then	
+	    if [[ $ANSWER = [[:digit:]]* ]] && [ $ANSWER -gt 0 ] && [ $ANSWER -le ${#HOSTS[*]} ]; then
 	        print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
-		print_text "Ups ! Something went wrongi, aborting ..." "red"
-	    else	
+	        print_text "Executing command ${HOSTS[$ANSWER]}" "yellow"
+
 	        print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
-		print_text "Connection closed." "green"
+	        print_text "Establishing connection ..." "green"
+
+	        print_text "" ""
+	        eval "${HOSTS[$ANSWER]}"
+	        print_text "" ""
+
+	        if [ $? != 0 ]; then	
+	            print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
+		        print_text "Ups ! Something went wrongi, aborting ..." "red"
+	        else	
+	            print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
+		    print_text "Connection closed." "green"
+	        fi
+	    else
+	        print_text "Invalid number $ANSWER ! Aborting ..." "red"
 	    fi
-	else
-	    print_text "Invalid number $ANSWER ! Aborting ..." "red"
-	fi
     else
-	print_text "No connections setup yet !" "red"
-	print_text "Please setup at least one connection to use 'connect' mode !" "red"
+	    print_text "No connections setup yet !" "red"
+	    print_text "Please setup at least one connection to use 'connect' mode !" "red"
     fi
 }
 
@@ -311,31 +314,32 @@ function add_host()
 
     COMMAND="ssh -p $PORT ${USER}@${HOST}"
     print_text "" ""
-    print_text "This is my guess for ssh command '${COMMAND}' ! Does this look correct ?" "yellow"
+    print_text "This is my guess for ssh command '${COMMAND}' ! Does this look correct (yes|no) ? : " "yellow" "true"
     read ANSWER
     print_text "" ""
 
     if [ "$ANSWER" == "yes" ]; then
-	if [ ${#HOSTS[*]} -eq 0 ]; then
-	    HOSTS[1]="$COMMAND"
-	else
-	    HOSTS[${#HOSTS[*]}]="$COMMAND"
-	fi
-	save_hosts		
-    	print_text "Saved host to connection list." "green"	
-	print_text "Need a restart ... Quitting !" "green"
-	print_text "" ""
-	exit 0
+	    if [ ${#HOSTS[*]} -eq 0 ]; then
+	        HOSTS[1]="$COMMAND"        
+    	else
+	        HOSTS[$(( ${#HOSTS[*]} + 1 ))]="$COMMAND"
+        fi	
+
+    	save_hosts		
+        print_text "Saved host to connection list." "green"	
+	    print_text "Need a restart ... Quitting !" "green"
+	    print_text "" ""
+	    exit 0
     else
-	print_text "Reenter connection information ?" "yellow"
-	read ANSWER
-	print_text "" ""
-	if [ "$ANSWER" == "yes" ]; then
-	    add_host
-	else
-	    print_text "Aborting !" "red"
-	fi
-    fi    
+	    print_text "Reenter connection information (yes|no) ? : " "yellow" "true"
+	    read ANSWER
+	    print_text "" ""
+	    if [ "$ANSWER" == "yes" ]; then
+	        add_host
+	    else
+	        print_text "Aborting !" "red"
+	    fi
+    fi         
 }
 
 ## END MAIN HELPER FUNCTION ###################################################
@@ -355,15 +359,15 @@ while [ "$ANSWER" != "quit" ] || [ "$ANSWER" != "q" ]; do
 	"show"    ) print_text "" ""; list_hosts; print_text "" "";;
 	"s"       ) print_text "" ""; list_hosts; print_text "" "";;
 	"connect" ) print_text "" ""; connect; print_text "" "";;
-	"c"	  ) print_text "" ""; connect; print_text "" "";;
+	"c"	      ) print_text "" ""; connect; print_text "" "";;
 	"add"	  ) print_text "" ""; add_host; print_text "" "";;
-	"a"	  ) print_text "" ""; add_host; print_text "" "";;
+	"a"	      ) print_text "" ""; add_host; print_text "" "";;
 	"delete"  ) ;;
-	"d"	  ) ;;	
+	"d"	      ) ;;	
 	"reset"   ) print_text "" ""; reset; print_text "" "";;
 	"r"       ) print_text "" ""; reset; print_text "" "";;
 	"upload"  ) ;;
-	"u"	  ) ;;	
+	"u"	      ) ;;	
 	"clear"   ) clear; print_menu;;
 	"cl"      ) clear; print_menu;;
 	"help"    ) print_options; print_text "" "";;
