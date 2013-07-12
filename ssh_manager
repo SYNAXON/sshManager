@@ -325,11 +325,10 @@ function add_host()
 	        HOSTS[$(( ${#HOSTS[*]} + 1 ))]="$COMMAND"
         fi	
 
-    	save_hosts		
+    	save_hosts
+        read_hosts
         print_text "Saved host to connection list." "green"	
-	    print_text "Need a restart ... Quitting !" "green"
-	    print_text "" ""
-	    exit 0
+	    print_text "" ""	    
     else
 	    print_text "Reenter connection information (yes|no) ? : " "yellow" "true"
 	    read ANSWER
@@ -340,6 +339,50 @@ function add_host()
 	        print_text "Aborting !" "red"
 	    fi
     fi         
+}
+
+function delete_host
+{    
+    ANSWER=""
+
+    if [ ${#HOSTS[1]} -gt 0 ]; then
+	    print_text "Please enter number of host to delete (1-${#HOSTS[*]}) : " "yellow" "true"
+	    read ANSWER
+	    print_text "" ""                        
+
+	    if [[ $ANSWER = [[:digit:]]* ]] && [ $ANSWER -gt 0 ] && [ $ANSWER -le ${#HOSTS[*]} ]; then
+            HOSTS_NEW=""
+            COUNTER="1"
+            POSITION="1"
+
+            while [[ $COUNTER -le ${#HOSTS[*]} ]]; do
+                if [ $COUNTER != $ANSWER ]; then
+                    HOSTS_NEW[${POSITION}]=${HOSTS[${COUNTER}]}
+                    POSITION="$(( $POSITION + 1 ))"
+                fi
+                COUNTER="$(( $COUNTER + 1 ))"
+            done
+
+            unset HOSTS
+
+            COUNTER="1"
+            while [[ $COUNTER -le ${#HOSTS_NEW[*]} ]]; do
+                HOSTS[${COUNTER}]=${HOSTS_NEW[${COUNTER}]}
+                COUNTER="$(( $COUNTER + 1 ))"
+            done
+
+            unset HOSTS_NEW
+            save_hosts
+            read_hosts
+
+            print_text "Successfully deleted host !" "green"
+        else
+            print_text "Invalid number - aborting !" "red"
+        fi
+    else
+	    print_text "No connections setup yet !" "red"
+	    print_text "Please setup at least one connection to use 'delete' mode !" "red"
+    fi
 }
 
 ## END MAIN HELPER FUNCTION ###################################################
@@ -362,8 +405,8 @@ while [ "$ANSWER" != "quit" ] || [ "$ANSWER" != "q" ]; do
 	"c"	      ) print_text "" ""; connect; print_text "" "";;
 	"add"	  ) print_text "" ""; add_host; print_text "" "";;
 	"a"	      ) print_text "" ""; add_host; print_text "" "";;
-	"delete"  ) ;;
-	"d"	      ) ;;	
+	"delete"  ) print_text "" ""; delete_host; print_text "" "";;
+	"d"	      ) print_text "" ""; delete_host; print_text "" "";;
 	"reset"   ) print_text "" ""; reset; print_text "" "";;
 	"r"       ) print_text "" ""; reset; print_text "" "";;
 	"upload"  ) ;;
