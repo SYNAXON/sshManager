@@ -80,11 +80,14 @@ function print_lineend()
 {  
     WIDTH="`tput cols`"
     WIDTH="$(( $WIDTH - $1 ))"
+    WHITESPACE=""
 
     while [ $WIDTH -gt 1 ]; do
-        print_text " " "" "true"
+        WHITESPACE="${WHITESPACE} "        
 	    WIDTH="$(( $WIDTH - 1 ))"
     done
+
+    echo -n "$WHITESPACE"
 
     if [ "$2" == "" ]; then
 	    print_text " " "" "true"
@@ -97,28 +100,31 @@ function print_lineend()
 # $2 - color of text (green, yellow, red, none).
 # $3 - offset for current position.
 function print_centered_text()
-{
-    TEXT="$1"
+{    
     WIDTH="`tput cols`"
     WIDTH="$(( $WIDTH - $3 ))"
-    MIDDLE="$(( $WIDTH - ${#TEXT} ))"
+    MIDDLE="$(( $WIDTH - ${#1} ))"
     MIDDLE="$(( $MIDDLE / 2 ))"
+    TEXT=""    
 
     CURRENT="0"
     while [ $CURRENT -lt $MIDDLE ]; do
-	    print_text " " "" "true"        
+        TEXT="${TEXT} "	        
         CURRENT="$(( $CURRENT + 1 ))"
     done
     
-    print_text "$TEXT" "$2" "true"
-    if [ "$(( (WIDTH - ${#TEXT}) % 2 ))" == "1" ]; then
+    TEXT="${TEXT}${1}"
+
+    if [ "$(( ($WIDTH - ${#1}) % 2 ))" == "1" ]; then
 	    CURRENT="$(( $CURRENT + 1 ))"
     fi
 
     while [ $CURRENT -gt 0 ]; do
-	    print_text " " "" "true"
+        TEXT="${TEXT} "
         CURRENT="$(( $CURRENT - 1 ))"
-    done
+    done    
+
+    print_text "$TEXT" "$2" "true"    
 }
 
 # $1 - String array with menu entries.
@@ -158,10 +164,9 @@ function print_menu()
     MENU[2]="[add     | a ] - Add host to list by setting up connection information."
     MENU[3]="[delete  | d ] - Delete connection information of host from list."
     MENU[4]="[reset   | r ] - Reset all stored information, including public and private keys."
-    MENU[5]="[upload  | u ] - Upload a public key to a host by using ssh-copy-id."
-    MENU[6]="[clear   | cl] - Clear the screen."
-    MENU[7]="[help    | h ] - Print this help again and show available commands."
-    MENU[8]="[quit    | q ] - Quit ssh_manager script."
+    MENU[5]="[clear   | cl] - Clear the screen."
+    MENU[6]="[help    | h ] - Print this help again and show available commands."
+    MENU[7]="[quit    | q ] - Quit ssh_manager script."
 
     # print available commands ...
     print_options "$MENU" "true"
@@ -245,7 +250,7 @@ function reset()
 {
     ANSWER=""
 
-    print_text "Enter 'yes' if you really want to delete all saved configurations and keys." "yellow"
+    print_text "Enter 'yes' if you really want to delete all saved configurations and keys : " "yellow" "true"
     read ANSWER
 
     print_text "" ""
@@ -409,8 +414,6 @@ while [ "$ANSWER" != "quit" ] || [ "$ANSWER" != "q" ]; do
 	"d"	      ) print_text "" ""; delete_host; print_text "" "";;
 	"reset"   ) print_text "" ""; reset; print_text "" "";;
 	"r"       ) print_text "" ""; reset; print_text "" "";;
-	"upload"  ) ;;
-	"u"	      ) ;;	
 	"clear"   ) clear; print_menu;;
 	"cl"      ) clear; print_menu;;
 	"help"    ) print_options; print_text "" "";;
