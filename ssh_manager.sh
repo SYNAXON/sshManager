@@ -1,32 +1,15 @@
 #!/bin/bash
 
 ###############################################################################
-#                                                                             #
-# Simple console frontend for ssh.                                            #                                   
-#                                                                             #
-# This small bash script helps you to manage several ssh connections at the   #
-# bash. Therefore it uses normal ssh command as underlying prgramm.           #
-#                                                                             #
-# author  : Daniel Kröger <dane0542@googlemail.com>                           #
-# version : 12.07.2013                                                        #
-#                                                                             #
-###############################################################################
-#                                                                             #
-# Copyright (C) 2013 Daniel Kröger                                            #
-#                                                                             # 
-# This program is free software; you can redistribute it and/or modify it     #
-# under the terms of the GNU General Public License as published by the Free  #
-# Software Foundation; either version 3 of the License, or (at your option)   #
-# any later version.                                                          #
-#                                                                             #
-# This program is distributed in the hope that it will be useful, but         #
-# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY  #
-# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for #
-# more details.                                                               #
-#                                                                             #
-# You should have received a copy of the GNU General Public License along     #
-# with this program; if not, see <http://www.gnu.org/licenses/>.              #
-#                                                                             #
+#
+# Simple console frontend for ssh.
+#
+# This small bash script helps you to manage several ssh connections at the
+# bash. Therefore it uses normal ssh command as underlying prgramm.
+#
+# author  : Daniel Kröger <dane0542@googlemail.com>
+# version : 12.07.2013
+#
 ###############################################################################
 
 ## BEGIN ENVIRONMENT VARIABLES ################################################
@@ -153,19 +136,25 @@ function print_menu()
     print_text "" ""
     print_seperator "*" "green"
     print_text "*" "green" "true"
-    print_centered_text "SSH MANAGER - With great power comes great responsibility !" "yellow" "2"
+    print_centered_text "SSH MANAGER - With great power comes great \
+		responsibility !" "yellow" "2"
     print_text "*" "green" "true"
     print_seperator "*" "green"
     print_text "*" "green" "true"
     print_lineend "1" "*" "green"
     
-    MENU[0]="[show    | s ] - Show a list of all available hosts to connect to."
-    MENU[1]="[connect | c ] - Connect to host by a number from list (show command)."
-    MENU[2]="[add     | a ] - Add host to list by setting up connection information."
+    MENU[0]="[show    | s ] - Show a list of all available hosts to connect\
+		to."
+    MENU[1]="[connect | c ] - Connect to host by a number from list\
+		(show command)."
+    MENU[2]="[add     | a ] - Add host to list by setting up connection\
+		information."
     MENU[3]="[delete  | d ] - Delete connection information of host from list."
-    MENU[4]="[reset   | r ] - Reset all stored information, including public and private keys."
+    MENU[4]="[reset   | r ] - Reset all stored information, including public\
+		and private keys."
     MENU[5]="[clear   | cl] - Clear the screen."
-    MENU[6]="[help    | h ] - Print this help again and show available commands."
+    MENU[6]="[help    | h ] - Print this help again and show available\
+		commands."
     MENU[7]="[quit    | q ] - Quit ssh_manager script."
 
     # print available commands ...
@@ -222,7 +211,8 @@ function bootstrap()
 	        chmod 600 "${DATA_DIRECTORY}/hosts"
 	        bootstrap
 	    else
-	        print_text "Cannot create necessary directory ${DATA_DIRECTORY} and files in it. Please check permissions and retry !" "red"
+	        print_text "Cannot create necessary directory ${DATA_DIRECTORY}\
+				and files in it. Please check permissions and retry !" "red"
             print_text "Execution failed with errors - Quitting now !" "red"
             exit 1
 	    fi
@@ -242,7 +232,8 @@ function list_hosts()
 	    done
     else
 	    print_text "No connections setup yet !" "red"
-	    print_text "Please setup at least one connection to use 'show' mode !" "red"	
+	    print_text "Please setup at least one connection to use 'show' mode !"\
+			"red"	
     fi	
 }
 
@@ -250,7 +241,8 @@ function reset()
 {
     ANSWER=""
 
-    print_text "Enter 'yes' if you really want to delete all saved configurations and keys : " "yellow" "true"
+    print_text "Enter 'yes' if you really want to delete all saved\
+		configurations and keys : " "yellow" "true"
     read ANSWER
 
     print_text "" ""
@@ -270,11 +262,13 @@ function connect()
     ANSWER=""
 
     if [ ${#HOSTS[1]} -gt 0 ]; then
-	    print_text "Please enter number of host to connect to (1-${#HOSTS[*]}) : " "yellow" "true"
+	    print_text "Please enter number of host to connect to (1-${#HOSTS[*]})\
+			: " "yellow" "true"
 	    read ANSWER
 	    print_text "" ""                        
 
-	    if [[ $ANSWER = [[:digit:]]* ]] && [ $ANSWER -gt 0 ] && [ $ANSWER -le ${#HOSTS[*]} ]; then
+	    if [[ $ANSWER = [[:digit:]]* ]] && [ $ANSWER -gt 0 ] &&\
+			[ $ANSWER -le ${#HOSTS[*]} ]; then
 	        print_text "[`date '+%d.%m.%Y %H:%M:%S'`] " "" "true" 
 	        print_text "Executing command ${HOSTS[$ANSWER]}" "yellow"
 
@@ -297,7 +291,8 @@ function connect()
 	    fi
     else
 	    print_text "No connections setup yet !" "red"
-	    print_text "Please setup at least one connection to use 'connect' mode !" "red"
+	    print_text "Please setup at least one connection to use 'connect' mode\
+			!" "red"
     fi
 }
 
@@ -308,18 +303,22 @@ function add_host()
     PORT=""
     COMMAND=""
 
-    print_text "Please enter hostname or ip of target (e.g. google.de) : " "yellow" "true"
+    print_text "Please enter hostname or ip of target (e.g. google.de) : "\
+		"yellow" "true"
     read HOST
 
-    print_text "Please enter username to login with (e.g. otto) : " "yellow" "true"
+    print_text "Please enter username to login with (e.g. otto) : "\
+		"yellow" "true"
     read USER
 
-    print_text "Please enter port number of target host (e.g. 20) : " "yellow" "true"
+    print_text "Please enter port number of target host (e.g. 20) : "\
+		"yellow" "true"
     read PORT
 
     COMMAND="ssh -p $PORT ${USER}@${HOST}"
     print_text "" ""
-    print_text "This is my guess for ssh command '${COMMAND}' ! Does this look correct (yes|no) ? : " "yellow" "true"
+    print_text "This is my guess for ssh command '${COMMAND}' ! Does this look\
+		correct (yes|no) ? : " "yellow" "true"
     read ANSWER
     print_text "" ""
 
@@ -335,7 +334,8 @@ function add_host()
         print_text "Saved host to connection list." "green"	
 	    print_text "" ""	    
     else
-	    print_text "Reenter connection information (yes|no) ? : " "yellow" "true"
+	    print_text "Reenter connection information (yes|no) ? : " "yellow"\
+			"true"
 	    read ANSWER
 	    print_text "" ""
 	    if [ "$ANSWER" == "yes" ]; then
@@ -351,11 +351,13 @@ function delete_host
     ANSWER=""
 
     if [ ${#HOSTS[1]} -gt 0 ]; then
-	    print_text "Please enter number of host to delete (1-${#HOSTS[*]}) : " "yellow" "true"
+	    print_text "Please enter number of host to delete (1-${#HOSTS[*]}) : "\
+			"yellow" "true"
 	    read ANSWER
 	    print_text "" ""                        
 
-	    if [[ $ANSWER = [[:digit:]]* ]] && [ $ANSWER -gt 0 ] && [ $ANSWER -le ${#HOSTS[*]} ]; then
+	    if [[ $ANSWER = [[:digit:]]* ]] && [ $ANSWER -gt 0 ] &&\
+			[ $ANSWER -le ${#HOSTS[*]} ]; then
             HOSTS_NEW=""
             COUNTER="1"
             POSITION="1"
@@ -386,7 +388,8 @@ function delete_host
         fi
     else
 	    print_text "No connections setup yet !" "red"
-	    print_text "Please setup at least one connection to use 'delete' mode !" "red"
+	    print_text "Please setup at least one connection to use 'delete'\
+			mode !" "red"
     fi
 }
 
@@ -418,8 +421,12 @@ while [ "$ANSWER" != "quit" ] || [ "$ANSWER" != "q" ]; do
 	"cl"      ) clear; print_menu;;
 	"help"    ) print_options; print_text "" "";;
 	"h"       ) print_options; print_text "" "";;
-	"quit"    ) print_text "" ""; print_text "Quitting now !" "green"; print_text "" ""; exit 0;;
-	"q"       ) print_text "" ""; print_text "Quitting now !" "green"; print_text "" ""; exit 0;;
-	*         ) print_text "" ""; print_text "Unknown command, please enter a valid. You can type 'help' to get a list of valid commands." "red"; print_text "" "";;
+	"quit"    ) print_text "" ""; print_text "Quitting now !" "green";\
+		print_text "" ""; exit 0;;
+	"q"       ) print_text "" ""; print_text "Quitting now !" "green";\
+		print_text "" ""; exit 0;;
+	*         ) print_text "" ""; print_text "Unknown command, please\
+		enter a valid. You can type 'help' to get a list of valid commands."\
+			"red"; print_text "" "";;
     esac
 done
